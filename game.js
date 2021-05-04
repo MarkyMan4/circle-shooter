@@ -26,7 +26,7 @@ document.addEventListener('mousedown', (event) => {
 
 window.setInterval(() => {
     enemies.push(new Enemy(playerX, playerY));
-}, 1000);
+}, 500);
 
 function drawPlayer() {
     ctx.beginPath();
@@ -130,14 +130,32 @@ function checkEnemyCollision() {
     }
 }
 
+function removeOutOfBoundsBullets() {
+    let bulletIndicesToRemove = [];
+
+    for(let i = 0; i < bullets.length; i++) {
+        if(bullets[i].x - bullets[i].radius < 0 || bullets[i].y - bullets[i].radius < 0
+            || bullets[i].x - bullets[i].radius > canvas.width || bullets[i].y - bullets[i].radius > canvas.height) {
+                bulletIndicesToRemove.push(i);
+            }
+    }
+
+    for(let i = 0; i < bulletIndicesToRemove.length; i++) {
+        bullets.splice(bulletIndicesToRemove[i], 1);
+    }
+}
+
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPlayer();
     drawStars();
 
+    console.log(bullets.length);
+
     if(bullets.length > 0) {
         drawBullets();
         checkEnemyCollision();
+        removeOutOfBoundsBullets();
     }
 
     if(enemies.length > 0) {
