@@ -47,6 +47,7 @@ let interval = setInterval(() => {
 // every 30 seconds, decrease the time between enemy spawns by 25 ms
 // don't let spawn rate go below 400 ms
 setInterval(() => {
+    console.log(timeBetweenEnemySpawns);
     if(timeBetweenEnemySpawns > 400) {
         clearInterval(interval);
         timeBetweenEnemySpawns -= 100;
@@ -67,6 +68,11 @@ function reset() {
     clickCircles = [];
     stars = [];
     timeBetweenEnemySpawns = 1000;
+
+    clearInterval(interval);
+    interval = setInterval(() => {
+        enemies.push(new Enemy(playerX, playerY));
+    }, timeBetweenEnemySpawns);
 
     initStars();
     animate();
