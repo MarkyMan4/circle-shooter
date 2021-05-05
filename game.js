@@ -5,6 +5,7 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let score = 0;
+let gameOver = false;
 
 let isMouseDown = false;
 let particles = [];
@@ -17,8 +18,8 @@ let stars = [];
 let timeBetweenEnemySpawns = 1000;
 
 const playerRadius = 20;
-const playerX = (canvas.width / 2) - (playerRadius / 2);
-const playerY = (canvas.height / 2) - (playerRadius / 2);
+const playerX = canvas.width / 2;
+const playerY = canvas.height / 2;
 
 document.addEventListener('mousedown', (event) => {
     bullets.push(new Bullet(playerX, playerY, event.x, event.y, 10));
@@ -188,39 +189,70 @@ function removeClickCircles() {
 }
 
 function drawScore() {
-    ctx.font = '40px Arial';
+    ctx.font = 'bold 40px Courier New';
     ctx.textAlign = 'center';
     ctx.fillStyle = 'white';
     ctx.fillText(`Score: ${score}`, (canvas.width / 2), 40);
+    ctx.strokeStyle = 'black';
+    ctx.strokeText(`Score: ${score}`, (canvas.width / 2), 40);
+}
+
+// check if an enemy collided with the player
+// set gameOver to true if they did
+function checkPlayerCollision() {
+    for(let i = 0; i < enemies.length; i++) {
+        const distance = Math.sqrt(Math.pow(playerX - enemies[i].x, 2) + Math.pow(playerY - enemies[i].y, 2));
+            
+        if(distance < playerRadius + enemies[i].radius) {
+            gameOver = true;
+        }
+    }
+}
+
+function drawGameOverScreen() {
+    ctx.font = 'bolder 60px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'black';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.strokeText('Game Over', canvas.width / 2, canvas.height / 2);
 }
 
 function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawPlayer();
-    drawStars();
-    drawScore();
-
-    if(bullets.length > 0) {
-        drawBullets();
-        checkEnemyCollision();
-        removeOutOfBoundsBullets();
+    if(gameOver) {
+        drawGameOverScreen();
     }
+    else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawPlayer();
+        drawStars();
+        drawScore();
 
-    if(enemies.length > 0) {
-        drawEnemies();
+        if(bullets.length > 0) {
+            drawBullets();
+            checkEnemyCollision();
+            removeOutOfBoundsBullets();
+        }
+
+        if(enemies.length > 0) {
+            drawEnemies();
+        }
+
+        if(particles.length > 0) {
+            drawParticles();
+            removeSmallParticles();
+        }
+
+        if(clickCircles.length > 0) {
+            drawClickCircles();
+            removeClickCircles();
+        }
+
+        checkPlayerCollision();
+
+        requestAnimationFrame(animate);
     }
-
-    if(particles.length > 0) {
-        drawParticles();
-        removeSmallParticles();
-    }
-
-    if(clickCircles.length > 0) {
-        drawClickCircles();
-        removeClickCircles();
-    }
-
-    requestAnimationFrame(animate);
 }
 
 initStars();
