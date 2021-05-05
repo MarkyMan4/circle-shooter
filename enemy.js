@@ -11,7 +11,7 @@ class Enemy {
             this.y = Math.random() > 0.5 ? 0 : window.innerHeight;
         }
 
-        this.color = colors[Math.round(Math.random() * colors.length)];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
         this.radius = (Math.random() * 10) + 20;
         this.speed = (Math.random() * 5) + 1;
 

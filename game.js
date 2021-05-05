@@ -4,17 +4,17 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let mouse = {
-    x: undefined,
-    y: undefined
-};
+let score = 0;
 
 let isMouseDown = false;
 let particles = [];
 let bullets = [];
 let enemies = [];
+let clickCircles = [];
 
 let stars = [];
+
+let timeBetweenEnemySpawns = 1000;
 
 const playerRadius = 20;
 const playerX = (canvas.width / 2) - (playerRadius / 2);
@@ -22,11 +22,25 @@ const playerY = (canvas.height / 2) - (playerRadius / 2);
 
 document.addEventListener('mousedown', (event) => {
     bullets.push(new Bullet(playerX, playerY, event.x, event.y, 10));
+    clickCircles.push(new ClickCircle(event.x, event.y));
 });
 
-window.setInterval(() => {
+// set the initial interval for spawning enemies
+let interval = setInterval(() => {
     enemies.push(new Enemy(playerX, playerY));
-}, 500);
+}, timeBetweenEnemySpawns);
+
+// every 30 seconds, decrease the time between enemy spawns by 25 ms
+// don't let spawn rate go below 400 ms
+setInterval(() => {
+    if(timeBetweenEnemySpawns > 400) {
+        clearInterval(interval);
+        timeBetweenEnemySpawns -= 100;
+        interval = setInterval(() => {
+            enemies.push(new Enemy(playerX, playerY));
+        }, timeBetweenEnemySpawns);
+    }
+}, 15000);
 
 function drawPlayer() {
     ctx.beginPath();
@@ -72,6 +86,7 @@ function drawEnemies() {
         ctx.beginPath();
         ctx.arc(enemies[i].x, enemies[i].y, enemies[i].radius, 0, 2 * Math.PI);
         ctx.fillStyle = enemies[i].color;
+        ctx.strokeStyle = 'black';
         ctx.fill();
         ctx.stroke();
     }
@@ -118,6 +133,8 @@ function checkEnemyCollision() {
                 bulletIndexToRemove = i;
                 enemyIndexToRemove = j;
 
+                score += 100;
+
                 // can break because a bullet can only collied with one enemy
                 break;
             }
@@ -145,12 +162,43 @@ function removeOutOfBoundsBullets() {
     }
 }
 
+function drawClickCircles() {
+    for(let i = 0; i < clickCircles.length; i++) {
+        ctx.beginPath();
+        ctx.arc(clickCircles[i].x, clickCircles[i].y, clickCircles[i].radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = clickCircles[i].color;
+        ctx.stroke();
+
+        clickCircles[i].update();
+    }
+}
+
+// remove click circles when their radius goes over 30
+function removeClickCircles() {
+    let indicesToRemove = [];
+
+    for(let i = 0; i < clickCircles.length; i++) {
+        if(clickCircles[i].radius >= 30)
+            indicesToRemove.push(i);
+    }
+
+    for(let i = 0; i < indicesToRemove.length; i++) {
+        clickCircles.splice(indicesToRemove[i], 1);
+    }
+}
+
+function drawScore() {
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'white';
+    ctx.fillText(`Score: ${score}`, (canvas.width / 2), 40);
+}
+
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPlayer();
     drawStars();
-
-    console.log(bullets.length);
+    drawScore();
 
     if(bullets.length > 0) {
         drawBullets();
@@ -165,6 +213,11 @@ function animate() {
     if(particles.length > 0) {
         drawParticles();
         removeSmallParticles();
+    }
+
+    if(clickCircles.length > 0) {
+        drawClickCircles();
+        removeClickCircles();
     }
 
     requestAnimationFrame(animate);
