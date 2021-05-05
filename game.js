@@ -21,9 +21,22 @@ const playerRadius = 20;
 const playerX = canvas.width / 2;
 const playerY = canvas.height / 2;
 
+const gameOverBtnWidth = 150;
+const gameOverBtnHeight = 50;
+const gameOverBtnX = (canvas.width / 2) - (gameOverBtnWidth / 2);
+const gameOverBtnY = (canvas.height / 2) + gameOverBtnHeight;
+
 document.addEventListener('mousedown', (event) => {
-    bullets.push(new Bullet(playerX, playerY, event.x, event.y, 10));
-    clickCircles.push(new ClickCircle(event.x, event.y));
+    if(!gameOver) {
+        bullets.push(new Bullet(playerX, playerY, event.x, event.y, 10));
+        clickCircles.push(new ClickCircle(event.x, event.y));
+    }
+    else {
+        if(event.x >= gameOverBtnX && event.x <= gameOverBtnX + gameOverBtnWidth
+            && event.y >= gameOverBtnY && event.y <= gameOverBtnY + gameOverBtnHeight) {
+                reset();
+            }
+    }
 });
 
 // set the initial interval for spawning enemies
@@ -42,6 +55,22 @@ setInterval(() => {
         }, timeBetweenEnemySpawns);
     }
 }, 15000);
+
+// reset the game
+function reset() {
+    score = 0;
+    gameOver = false;
+    isMouseDown = false;
+    particles = [];
+    bul = [];
+    enemies = [];
+    clickCircles = [];
+    stars = [];
+    timeBetweenEnemySpawns = 1000;
+
+    initStars();
+    animate();
+}
 
 function drawPlayer() {
     ctx.beginPath();
@@ -210,13 +239,26 @@ function checkPlayerCollision() {
 }
 
 function drawGameOverScreen() {
-    ctx.font = 'bolder 60px Courier New';
+    ctx.font = 'bolder 100px Courier New';
     ctx.textAlign = 'center';
     ctx.fillStyle = 'black';
     ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 2;
     ctx.strokeText('Game Over', canvas.width / 2, canvas.height / 2);
+
+    // draw restart button
+    ctx.beginPath();
+    ctx.rect(gameOverBtnX, gameOverBtnY, gameOverBtnWidth, gameOverBtnHeight);
+    ctx.fillStyle = 'MediumSeaGreen';
+    ctx.strokeStyle = 'white';
+    ctx.fill();
+    ctx.stroke;
+
+    ctx.font = '30px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'black';
+    ctx.fillText('Restart', canvas.width / 2, (canvas.height / 2) + 85);
 }
 
 function animate() {
