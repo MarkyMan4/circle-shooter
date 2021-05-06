@@ -52,7 +52,11 @@ setInterval(() => {
         clearInterval(interval);
         timeBetweenEnemySpawns -= 100;
         interval = setInterval(() => {
-            enemies.push(new Enemy(playerX, playerY));
+            // make enemies sometimes go in a random direction
+            if(Math.random() > 0.8)
+                enemies.push(new Enemy(playerX, playerY));
+            else
+                enemies.push(new Enemy(Math.random() * canvas.width, Math.random() * canvas.height))
         }, timeBetweenEnemySpawns);
     }
 }, 15000);
