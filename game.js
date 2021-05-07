@@ -53,7 +53,7 @@ setInterval(() => {
         timeBetweenEnemySpawns -= 100;
         interval = setInterval(() => {
             // make enemies sometimes go in a random direction
-            if(Math.random() > 0.8)
+            if(Math.random() > 0.3)
                 enemies.push(new Enemy(playerX, playerY));
             else
                 enemies.push(new Enemy(Math.random() * canvas.width, Math.random() * canvas.height))
