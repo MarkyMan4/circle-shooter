@@ -1,7 +1,7 @@
 const enemyColors = ['Orange', 'DodgerBlue', 'Tomato', 'MediumSeaGreen', 'SlateBlue'];
 
 class Enemy {
-    constructor(toX, toY) {
+    constructor(toX, toY, hasPowerup) {
         if(Math.random() > 0.5) {
             this.x = Math.random() > 0.5 ? 0 : window.innerWidth;
             this.y = Math.random() * window.innerHeight;
@@ -11,6 +11,7 @@ class Enemy {
             this.y = Math.random() > 0.5 ? 0 : window.innerHeight;
         }
 
+        this.hasPowerup = hasPowerup;
         this.color = colors[Math.floor(Math.random() * colors.length)];
         this.radius = (Math.random() * 10) + 20;
         this.speed = (Math.random() * 5) + 1;

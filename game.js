@@ -12,6 +12,7 @@ let particles = [];
 let bullets = [];
 let enemies = [];
 let clickCircles = [];
+let animatedTexts = [];
 
 let stars = [];
 
@@ -26,9 +27,28 @@ const gameOverBtnHeight = 50;
 const gameOverBtnX = (canvas.width / 2) - (gameOverBtnWidth / 2);
 const gameOverBtnY = (canvas.height / 2) + gameOverBtnHeight;
 
+let shotgunPowerup = false;
+let shotgunShotsRemaining = 0;
+
 document.addEventListener('mousedown', (event) => {
     if(!gameOver) {
         bullets.push(new Bullet(playerX, playerY, event.x, event.y, 10));
+        
+        // if they have the shotgun powerup, add several bullets going in the
+        // general direction of the mouse click
+        if(shotgunPowerup) {
+            for(let i = 0; i < 10; i++) {
+                const randX = event.x + (Math.random() * 200) * (Math.random() > 0.5 ? 1 : -1);
+                const randY = event.y + (Math.random() * 200) * (Math.random() > 0.5 ? 1 : -1);
+                bullets.push(new Bullet(playerX, playerY, randX, randY, (Math.random() * 10) + 5));
+            }
+
+            shotgunShotsRemaining -= 1;
+
+            if(shotgunShotsRemaining <= 0) 
+                shotgunPowerup = false;
+        }
+
         clickCircles.push(new ClickCircle(event.x, event.y));
     }
     else {
@@ -41,7 +61,7 @@ document.addEventListener('mousedown', (event) => {
 
 // set the initial interval for spawning enemies
 let interval = setInterval(() => {
-    enemies.push(new Enemy(playerX, playerY));
+    enemies.push(new Enemy(playerX, playerY, false));
 }, timeBetweenEnemySpawns);
 
 // every 30 seconds, decrease the time between enemy spawns by 25 ms
@@ -53,13 +73,23 @@ setInterval(() => {
         timeBetweenEnemySpawns -= 100;
         interval = setInterval(() => {
             // make enemies sometimes go in a random direction
-            if(Math.random() > 0.3)
-                enemies.push(new Enemy(playerX, playerY));
-            else
-                enemies.push(new Enemy(Math.random() * canvas.width, Math.random() * canvas.height))
+            if(Math.random() > 0.3) {
+                enemies.push(new Enemy(playerX, playerY, false));
+            }
+            else {
+                let enemyDropsPowerup = true;
+
+                if(shotgunPowerup)
+                    enemyDropsPowerup = false;
+
+                enemies.push(new Enemy(Math.random() * canvas.width, Math.random() * canvas.height, enemyDropsPowerup))
+
+                if(enemyDropsPowerup)
+                    shotgunShotsRemaining = 10;
+            }
         }, timeBetweenEnemySpawns);
     }
-}, 15000);
+}, 10000);
 
 // reset the game
 function reset() {
@@ -72,6 +102,7 @@ function reset() {
     clickCircles = [];
     stars = [];
     timeBetweenEnemySpawns = 1000;
+    shotgunPowerup = false;
 
     clearInterval(interval);
     interval = setInterval(() => {
@@ -175,6 +206,11 @@ function checkEnemyCollision() {
 
                 score += 100;
 
+                if(enemies[j].hasPowerup && !shotgunPowerup) {
+                    shotgunPowerup = true;
+                    animatedTexts.push(new AnimatedText('+10 Shotgun Shells', '40px', 'white', canvas.width / 2, (canvas.height / 2) + 50));
+                }
+
                 // can break because a bullet can only collied with one enemy
                 break;
             }
@@ -248,6 +284,41 @@ function checkPlayerCollision() {
     }
 }
 
+function drawShotsRemaining() {
+    ctx.font = 'bold 30px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'white';
+    ctx.fillText(`Shots remaining: ${shotgunShotsRemaining}`, (canvas.width / 2), 80);
+    ctx.strokeStyle = 'black';
+    ctx.strokeText(`Shots remaining: ${shotgunShotsRemaining}`, (canvas.width / 2), 80);
+}
+
+function drawAnimatedTexts() {
+    for(let i = 0; i < animatedTexts.length; i++) {
+        ctx.font = animatedTexts[i].fontsize + ' Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = animatedTexts[i].color;
+        ctx.fillText(animatedTexts[i].text, animatedTexts[i].x, animatedTexts[i].y);
+        ctx.strokeStyle = 'black';
+        ctx.strokeText(animatedTexts[i].text, animatedTexts[i].x, animatedTexts[i].y);
+
+        animatedTexts[i].updatePos();
+    }
+}
+
+function removeAnimatedTexts() {
+    let indicesToRemove = [];
+
+    for(let i = 0; i < animatedTexts.length; i++) {
+        if(animatedTexts[i].y < playerY - 75)
+            indicesToRemove.push(i);
+    }
+
+    for(let i = 0; i < indicesToRemove.length; i++) {
+        animatedTexts.splice(indicesToRemove[i], 1);
+    }
+}
+
 function drawGameOverScreen() {
     ctx.font = 'bolder 100px Courier New';
     ctx.textAlign = 'center';
@@ -299,6 +370,15 @@ function animate() {
         if(clickCircles.length > 0) {
             drawClickCircles();
             removeClickCircles();
+        }
+
+        if(animatedTexts.length > 0) {
+            drawAnimatedTexts();
+            removeAnimatedTexts();
+        }
+
+        if(shotgunPowerup) {
+            drawShotsRemaining();
         }
 
         checkPlayerCollision();
